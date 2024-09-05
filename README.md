@@ -53,7 +53,7 @@ The application is structured into three main layers:
 
 ### How to Run the Application
 1. **Compile the Project**:
-   - Use Maven or Gradle to compile the project and resolve dependencies.
+   - Use Maven to compile the project and resolve dependencies.
 
 2. **Run the Application**:
    - Start the application via the console using the appropriate command (e.g., `java -jar library-management-system.jar`).
