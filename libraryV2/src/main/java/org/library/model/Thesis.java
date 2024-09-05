@@ -1,23 +1,20 @@
 package org.library.model;
 
-import java.time.LocalDate;
 import org.library.service.Borrowable;
+
+import java.time.LocalDate;
+import java.util.Objects;
 
 public class Thesis extends Document implements Borrowable {
     private String university;
     private String domain;
-    private boolean isBorrowed;
+    private boolean borrowed = false;
 
-    public Thesis() {
-        super();
-        setType("Thesis");
-    }
-
+    // Constructor with parameters
     public Thesis(String title, String author, LocalDate publicationDate, String university, String domain) {
         super(title, author, publicationDate, "Thesis");
         this.university = university;
         this.domain = domain;
-        this.isBorrowed = false;
     }
 
     // Getters and setters
@@ -37,14 +34,15 @@ public class Thesis extends Document implements Borrowable {
         this.domain = domain;
     }
 
+    @Override
     public boolean isBorrowed() {
-        return isBorrowed;
+        return borrowed;
     }
 
     @Override
     public void borrow() {
-        if (!isBorrowed) {
-            isBorrowed = true;
+        if (!borrowed) {
+            borrowed = true;
             System.out.println("Thesis has been borrowed.");
         } else {
             System.out.println("Thesis is already borrowed.");
@@ -53,20 +51,38 @@ public class Thesis extends Document implements Borrowable {
 
     @Override
     public void returnItem() {
-        if (isBorrowed) {
-            isBorrowed = false;
+        if (borrowed) {
+            borrowed = false;
             System.out.println("Thesis has been returned.");
         } else {
             System.out.println("Thesis was not borrowed.");
         }
     }
 
+    // Override equals and hashCode for better comparison and hashing
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Thesis thesis = (Thesis) o;
+        return borrowed == thesis.borrowed &&
+                Objects.equals(university, thesis.university) &&
+                Objects.equals(domain, thesis.domain);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), university, domain, borrowed);
+    }
+
+    // Override toString for better readability
     @Override
     public String toString() {
         return "Thesis{" +
                 "university='" + university + '\'' +
                 ", domain='" + domain + '\'' +
-                ", isBorrowed=" + isBorrowed +
+                ", borrowed=" + borrowed +
                 "} " + super.toString();
     }
 }

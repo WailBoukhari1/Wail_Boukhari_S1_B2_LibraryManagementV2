@@ -1,11 +1,11 @@
 package org.library.db;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.io.FileInputStream;
-import java.io.IOException;
 
 public class DatabaseConnection {
     private static DatabaseConnection instance;
@@ -70,11 +70,11 @@ public class DatabaseConnection {
             try (FileInputStream fis = new FileInputStream("src/main/resources/application.properties")) {
                 props.load(fis);
             }
-            
+
             this.url = props.getProperty("db.url");
             this.user = props.getProperty("db.user");
             this.password = props.getProperty("db.password");
-            
+
             if (this.url == null || this.user == null || this.password == null) {
                 throw new RuntimeException("Missing database properties");
             }

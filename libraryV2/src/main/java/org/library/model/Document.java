@@ -1,17 +1,16 @@
 package org.library.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
-public class Document {
+public abstract class Document {
     private Long id;
     private String title;
     private String author;
     private LocalDate publicationDate;
     private String type;
 
-    // Constructors
-    public Document() {}
-
+    // Constructor with parameters
     public Document(String title, String author, LocalDate publicationDate, String type) {
         this.title = title;
         this.author = author;
@@ -60,6 +59,25 @@ public class Document {
         this.type = type;
     }
 
+    // Override equals and hashCode for better comparison and hashing
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Document document = (Document) o;
+        return Objects.equals(id, document.id) &&
+                Objects.equals(title, document.title) &&
+                Objects.equals(author, document.author) &&
+                Objects.equals(publicationDate, document.publicationDate) &&
+                Objects.equals(type, document.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, author, publicationDate, type);
+    }
+
+    // Override toString for better readability
     @Override
     public String toString() {
         return "Document{" +
@@ -69,5 +87,10 @@ public class Document {
                 ", publicationDate=" + publicationDate +
                 ", type='" + type + '\'' +
                 '}';
+    }
+
+    // Factory method pattern implementation
+    public static Document createDocument(String title, String author, LocalDate publicationDate, String type) {
+        return new Document(title, author, publicationDate, type) {};
     }
 }

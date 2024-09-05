@@ -1,8 +1,8 @@
 package org.library.ui;
 
-import org.library.service.Library;
 import org.library.model.*;
 import org.library.service.Borrowable;
+import org.library.service.Library;
 import org.library.service.Reservable;
 
 import java.time.LocalDate;
@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class ConsoleUI {
-    private Library library;
-    private Scanner scanner;
+    private final Library library;
+    private final Scanner scanner;
 
     public ConsoleUI(Library library) {
         this.library = library;
@@ -48,7 +48,7 @@ public class ConsoleUI {
                     running = false;
                     break;
             }
-            
+
             if (running) {
                 System.out.println("\nPress Enter to continue...");
                 scanner.nextLine();
@@ -88,12 +88,10 @@ public class ConsoleUI {
                 System.out.printf("│ Name: %-28s\n", user.getName());
                 System.out.printf("│ Email: %-27s\n", user.getEmail());
                 System.out.printf("│ Type: %-28s\n", user.getUserType());
-                if (user instanceof Student) {
-                    Student student = (Student) user;
+                if (user instanceof Student student) {
                     System.out.printf("│ Student ID: %-23s\n", student.getStudentId());
                     System.out.printf("│ Major: %-27s\n", student.getMajor());
-                } else if (user instanceof Professor) {
-                    Professor professor = (Professor) user;
+                } else if (user instanceof Professor professor) {
                     System.out.printf("│ Employee ID: %-22s\n", professor.getEmployeeId());
                     System.out.printf("│ Department: %-23s\n", professor.getDepartment());
                 }
@@ -115,25 +113,21 @@ public class ConsoleUI {
                 System.out.printf("│ Author: %-26s\n", document.getAuthor());
                 System.out.printf("│ Publication Date: %-17s\n", document.getPublicationDate());
                 System.out.printf("│ Type: %-28s\n", document.getType());
-                
-                if (document instanceof Book) {
-                    Book book = (Book) document;
+
+                if (document instanceof Book book) {
                     System.out.printf("│ ISBN: %-28s\n", book.getIsbn());
                     System.out.printf("│ Page Count: %-23d\n", book.getPageCount());
-                } else if (document instanceof Thesis) {
-                    Thesis thesis = (Thesis) document;
+                } else if (document instanceof Thesis thesis) {
                     System.out.printf("│ University: %-23s\n", thesis.getUniversity());
                     System.out.printf("│ Domain: %-26s\n", thesis.getDomain());
-                } else if (document instanceof ScientificJournal) {
-                    ScientificJournal journal = (ScientificJournal) document;
+                } else if (document instanceof ScientificJournal journal) {
                     System.out.printf("│ ISSN: %-28s\n", journal.getIssn());
                     System.out.printf("│ Research Domain: %-19s\n", journal.getResearchDomain());
-                } else if (document instanceof Magazine) {
-                    Magazine magazine = (Magazine) document;
+                } else if (document instanceof Magazine magazine) {
                     System.out.printf("│ ISSN: %-28s\n", magazine.getIssn());
                     System.out.printf("│ Issue Number: %-21d\n", magazine.getIssueNumber());
                 }
-                
+
                 if (document instanceof Borrowable) {
                     System.out.printf("│ Borrowed: %-25s\n", ((Borrowable) document).isBorrowed() ? "Yes" : "No");
                 }

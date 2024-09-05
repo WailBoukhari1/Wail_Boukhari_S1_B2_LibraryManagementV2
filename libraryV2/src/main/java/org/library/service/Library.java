@@ -1,15 +1,16 @@
 package org.library.service;
 
-import org.library.dao.UserDAO;
 import org.library.dao.DocumentDAO;
-import org.library.model.*;
+import org.library.dao.UserDAO;
+import org.library.model.Document;
+import org.library.model.User;
 
 import java.util.List;
 import java.util.Optional;
 
 public class Library {
-    private UserDAO userDAO;
-    private DocumentDAO documentDAO;
+    private final UserDAO userDAO;
+    private final DocumentDAO documentDAO;
 
     public Library(UserDAO userDAO, DocumentDAO documentDAO) {
         this.userDAO = userDAO;

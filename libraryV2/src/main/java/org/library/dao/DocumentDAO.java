@@ -1,14 +1,15 @@
 package org.library.dao;
 
-import org.library.model.Document;
 import org.library.db.DatabaseConnection;
+import org.library.model.Document;
+import static org.library.model.Document.createDocument;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DocumentDAO implements GenericDAO<Document, Long> {
     private static final Logger LOGGER = Logger.getLogger(DocumentDAO.class.getName());
@@ -95,13 +96,12 @@ public class DocumentDAO implements GenericDAO<Document, Long> {
     }
 
     private Document createDocumentFromResultSet(ResultSet rs) throws SQLException {
-        Document document = new Document();
-        document.setId(rs.getLong("id"));
-        document.setTitle(rs.getString("title"));
-        document.setAuthor(rs.getString("author"));
-        document.setPublicationDate(rs.getDate("publication_date").toLocalDate());
-        document.setType(rs.getString("type"));
-        return document;
+        return createDocument(
+            rs.getString("title"),
+            rs.getString("author"),
+            rs.getDate("publication_date").toLocalDate(),
+            rs.getString("type")
+        );
     }
 
     private void setDocumentParameters(PreparedStatement stmt, Document document) throws SQLException {

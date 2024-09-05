@@ -1,8 +1,10 @@
 package org.library.model;
 
-import java.time.LocalDate;
 import org.library.service.Borrowable;
 import org.library.service.Reservable;
+
+import java.time.LocalDate;
+import java.util.Objects;
 
 public class Book extends Document implements Borrowable, Reservable {
     private String isbn;
@@ -10,11 +12,7 @@ public class Book extends Document implements Borrowable, Reservable {
     private boolean borrowed = false;
     private boolean reserved = false;
 
-    public Book() {
-        super();
-        setType("Book");
-    }
-
+    // Constructor with parameters
     public Book(String title, String author, LocalDate publicationDate, String isbn, int pageCount) {
         super(title, author, publicationDate, "Book");
         this.isbn = isbn;
@@ -68,11 +66,32 @@ public class Book extends Document implements Borrowable, Reservable {
         reserved = false;
     }
 
+    // Override equals and hashCode for better comparison and hashing
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Book book = (Book) o;
+        return pageCount == book.pageCount &&
+                borrowed == book.borrowed &&
+                reserved == book.reserved &&
+                Objects.equals(isbn, book.isbn);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), isbn, pageCount, borrowed, reserved);
+    }
+
+    // Override toString for better readability
     @Override
     public String toString() {
         return "Book{" +
                 "isbn='" + isbn + '\'' +
                 ", pageCount=" + pageCount +
+                ", borrowed=" + borrowed +
+                ", reserved=" + reserved +
                 "} " + super.toString();
     }
 }

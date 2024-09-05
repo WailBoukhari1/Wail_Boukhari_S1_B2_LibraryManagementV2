@@ -1,9 +1,9 @@
 package org.library;
 
+import org.library.dao.DocumentDAO;
+import org.library.dao.UserDAO;
 import org.library.service.Library;
 import org.library.ui.ConsoleUI;
-import org.library.dao.UserDAO;
-import org.library.dao.DocumentDAO;
 
 public class Main {
     public static void main(String[] args) {

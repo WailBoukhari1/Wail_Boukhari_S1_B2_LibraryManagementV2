@@ -1,14 +1,12 @@
 package org.library.model;
 
+import java.util.Objects;
+
 public class Professor extends User {
     private String employeeId;
     private String department;
 
-    public Professor() {
-        super();
-        setUserType("Professor");
-    }
-
+    // Constructor with parameters
     public Professor(String name, String email, String employeeId, String department) {
         super(name, email, "Professor");
         this.employeeId = employeeId;
@@ -32,6 +30,23 @@ public class Professor extends User {
         this.department = department;
     }
 
+    // Override equals and hashCode for better comparison and hashing
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Professor professor = (Professor) o;
+        return Objects.equals(employeeId, professor.employeeId) &&
+                Objects.equals(department, professor.department);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), employeeId, department);
+    }
+
+    // Override toString for better readability
     @Override
     public String toString() {
         return "Professor{" +

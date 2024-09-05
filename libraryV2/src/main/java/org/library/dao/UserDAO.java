@@ -1,14 +1,15 @@
 package org.library.dao;
 
-import org.library.model.User;
 import org.library.db.DatabaseConnection;
+import org.library.model.User;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import static org.library.model.User.createUser;
 
 public class UserDAO implements GenericDAO<User, Long> {
     private static final Logger LOGGER = Logger.getLogger(UserDAO.class.getName());
@@ -95,12 +96,11 @@ public class UserDAO implements GenericDAO<User, Long> {
     }
 
     private User createUserFromResultSet(ResultSet rs) throws SQLException {
-        User user = new User(); // Make sure User has a public no-arg constructor
-        user.setId(rs.getLong("id"));
-        user.setName(rs.getString("name"));
-        user.setEmail(rs.getString("email"));
-        user.setUserType(rs.getString("user_type"));
-        return user;
+        return createUser(
+            rs.getString("name"),
+            rs.getString("email"),
+            rs.getString("user_type")
+        );
     }
 
     private void setUserParameters(PreparedStatement stmt, User user) throws SQLException {
