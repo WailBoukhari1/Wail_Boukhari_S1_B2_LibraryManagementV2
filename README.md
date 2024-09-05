@@ -4,10 +4,10 @@
 This project aims to enhance a console-based library management application by adding data persistence and advanced functionalities. The application utilizes a relational database to store information about documents and users and leverages advanced Java concepts to optimize and extend its features.
 
 ## General Objective of the Application
-The main objective is to extend the functionality of a library management application by integrating data persistence using PostgreSQL, while applying advanced Object-Oriented Programming (OOP) concepts in Java. This includes managing borrowing, reservations, and users, as well as advanced search and input validation.
+The main objective is to extend the functionality of a library management application by integrating data persistence using PostgreSQL while applying advanced Object-Oriented Programming (OOP) concepts in Java. This includes managing borrowing, reservations, and users, as well as advanced search and input validation.
 
 ## Technologies Used
-- **Java 8**: For Object-Oriented Programming, functional interfaces, lambda expressions, and advanced date handling with Java Time API.
+- **Java 8**: For Object-Oriented Programming, functional interfaces, lambda expressions, and advanced data handling with Java Time API.
 - **PostgreSQL**: For relational database management.
 - **JDBC**: For database connectivity.
 - **HashMaps**: To optimize document searches.
@@ -69,6 +69,6 @@ The application is structured into three main layers:
 - **Authentication and Authorization**: Add authentication and authorization mechanisms to secure access to application features.
 
 ## Author and Contact
-- **Author**: [Your Name]
-- **Contact**: [Your Email] | [Your GitHub/LinkedIn]
+- **Author**: [WAIL BOUKHARI]
+- **Contact**: [boukhari.wail001@gmail.com] | [My GitHub : https://github.com/WailBoukhari1/ -- My Linkedin : https://www.linkedin.com/in/wail-boukhari-976257240/]
 
