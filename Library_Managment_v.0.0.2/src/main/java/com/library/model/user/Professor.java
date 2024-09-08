@@ -4,8 +4,6 @@ import java.util.UUID;
 
 public class Professor extends User {
     private String department;
-    private String email;
-    private String phoneNumber;
 
     public Professor(UUID id, String name, String email, String phoneNumber, String department) {
         super(id, name, email, phoneNumber);
