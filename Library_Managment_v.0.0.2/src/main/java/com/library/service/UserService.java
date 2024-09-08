@@ -14,7 +14,7 @@ public class UserService {
         this.userDAO = UserDAO.getInstance();
     }
 
-    public void addUser(User user) {
+    public void createUser(User user) {
         userDAO.save(user);
     }
 

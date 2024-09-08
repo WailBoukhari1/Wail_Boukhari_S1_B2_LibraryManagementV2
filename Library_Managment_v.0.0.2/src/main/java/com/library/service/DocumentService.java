@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class LibraryService {
+public class DocumentService {
     private final DocumentDAO documentDAO;
 
-    public LibraryService() {
+    public DocumentService() {
         this.documentDAO = DocumentDAO.getInstance();
     }
 
-    public void addDocument(Document document) {
+    public void createDocument(Document document) {
         documentDAO.save(document);
     }
 
