@@ -1,15 +1,20 @@
 package com.library.util;
 
+import java.util.regex.Pattern;
+
 public class InputValidator {
-    public static boolean isValidEmail(String email) {
-        return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
+
+    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+
+    public static boolean isValidUUID(String uuid) {
+        return UUID_PATTERN.matcher(uuid).matches();
     }
 
-    public static boolean isValidISBN(String isbn) {
-        return isbn.matches("^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$");
+    public static boolean isValidName(String name) {
+        return name != null && !name.trim().isEmpty();
     }
 
-    public static boolean isValidISSN(String issn) {
-        return issn.matches("^\\d{4}-\\d{3}[\\dX]$");
+    public static boolean isValidTitle(String title) {
+        return title != null && !title.trim().isEmpty();
     }
 }
