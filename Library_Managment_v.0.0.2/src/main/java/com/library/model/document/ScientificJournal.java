@@ -10,16 +10,11 @@ public class ScientificJournal extends Document {
         this.researchField = researchField;
     }
 
-    public String getResearchField() {
-        return researchField;
-    }
-
-    public void setResearchField(String researchField) {
-        this.researchField = researchField;
-    }
-
     @Override
     public String getType() {
         return "ScientificJournal";
     }
+
+    public String getResearchField() { return researchField; }
+    public void setResearchField(String researchField) { this.researchField = researchField; }
 }

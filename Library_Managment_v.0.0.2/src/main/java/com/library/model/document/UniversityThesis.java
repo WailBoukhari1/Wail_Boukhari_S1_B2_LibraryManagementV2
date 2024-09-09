@@ -12,24 +12,13 @@ public class UniversityThesis extends Document {
         this.field = field;
     }
 
-    public String getUniversity() {
-        return university;
-    }
-
-    public void setUniversity(String university) {
-        this.university = university;
-    }
-
-    public String getField() {
-        return field;
-    }
-
-    public void setField(String field) {
-        this.field = field;
-    }
-
     @Override
     public String getType() {
         return "UniversityThesis";
     }
+
+    public String getUniversity() { return university; }
+    public void setUniversity(String university) { this.university = university; }
+    public String getField() { return field; }
+    public void setField(String field) { this.field = field; }
 }

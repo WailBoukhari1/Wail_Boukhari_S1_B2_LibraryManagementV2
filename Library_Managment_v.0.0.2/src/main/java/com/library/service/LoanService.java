@@ -1,61 +1,71 @@
 package com.library.service;
 
 import com.library.dao.LoanDAO;
+import com.library.dao.UserDAO;
+import com.library.dao.DocumentDAO;
 import com.library.model.Loan;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class LoanService {
     private final LoanDAO loanDAO;
-    private final ReservationService reservationService;
+    private final UserDAO userDAO;
+    private final DocumentDAO documentDAO;
 
-    public LoanService(ReservationService reservationService) {
+    public LoanService() {
         this.loanDAO = LoanDAO.getInstance();
-        this.reservationService = reservationService;
+        this.userDAO = UserDAO.getInstance();
+        this.documentDAO = DocumentDAO.getInstance();
     }
 
-    public void borrowDocument(Loan loan) {
-        loanDAO.save(loan);
-        reservationService.cancelReservationByUserAndDocument(loan.getUserId(), loan.getDocumentId());
+    public void loanDocument(String documentTitle, String userName) {
+        if (!userDAO.userExists(userName)) {
+            throw new IllegalArgumentException("User does not exist: " + userName);
+        }
+        if (!documentDAO.documentExists(documentTitle)) {
+            throw new IllegalArgumentException("Document does not exist: " + documentTitle);
+        }
+        if (isDocumentLoaned(documentTitle)) {
+            throw new IllegalArgumentException("Document is already loaned: " + documentTitle);
+        }
+        Loan loan = new Loan(null, documentTitle, userName, LocalDate.now(), null);
+        try {
+            loanDAO.save(loan);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to process loan. Please try again later.");
+        }
     }
 
-    public void returnDocument(UUID loanId, LocalDate returnDate) {
-        Optional<Loan> loanOpt = findLoanById(loanId);
+    public void returnDocument(String documentTitle, String userName) {
+        Optional<Loan> loanOpt = loanDAO.findByDocumentAndUser(documentTitle, userName);
         if (loanOpt.isPresent()) {
             Loan loan = loanOpt.get();
-            loan.setReturnDate(returnDate);
-            loanDAO.update(loan);
+            loan.setReturnDate(LocalDate.now());
+            try {
+                loanDAO.update(loan);
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to process return. Please try again later.");
+            }
+        } else {
+            throw new IllegalArgumentException("No active loan found for this document and user.");
         }
     }
 
     public List<Loan> getAllLoans() {
-        return loanDAO.findAll();
+        try {
+            return loanDAO.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to retrieve loans. Please try again later.");
+        }
     }
 
-    public Optional<Loan> findLoanById(UUID id) {
-        return loanDAO.findAll().stream()
-                .filter(loan -> loan.getId().equals(id))
-                .findFirst();
-    }
-
-    public List<Loan> findLoansByUserId(UUID userId) {
-        return loanDAO.findAll().stream()
-                .filter(loan -> loan.getUserId().equals(userId))
-                .collect(Collectors.toList());
-    }
-
-    public Optional<Loan> findLoanByUserAndDocument(UUID userId, UUID documentId) {
-        return loanDAO.findAll().stream()
-                .filter(loan -> loan.getUserId().equals(userId) && loan.getDocumentId().equals(documentId))
-                .findFirst();
-    }
-
-    public boolean isDocumentLoaned(UUID documentId) {
-        return loanDAO.findAll().stream()
-                .anyMatch(loan -> loan.getDocumentId().equals(documentId) && loan.getReturnDate() == null);
+    public boolean isDocumentLoaned(String documentTitle) {
+        try {
+            return loanDAO.findAll().stream()
+                    .anyMatch(loan -> loan.getDocumentTitle().equals(documentTitle) && loan.getReturnDate() == null);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to check document loan status. Please try again later.");
+        }
     }
 }

@@ -4,24 +4,19 @@ import com.library.service.DocumentService;
 import com.library.service.LoanService;
 import com.library.service.ReservationService;
 import com.library.service.UserService;
-import com.library.util.InputValidator;
-import com.library.util.DateUtils;
-import com.library.model.document.Book;
-import com.library.model.document.Document;
-import com.library.model.document.Magazine;
-import com.library.model.document.ScientificJournal;
-import com.library.model.document.UniversityThesis;
-import com.library.model.user.Professor;
-import com.library.model.user.Student;
-import com.library.model.user.User;
+import com.library.model.document.*;
+import com.library.model.user.*;
 import com.library.model.Loan;
 import com.library.model.Reservation;
+import com.library.util.InputValidator;
+import com.library.util.DateUtils;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class ConsoleUI {
     private final DocumentService documentService;
@@ -30,7 +25,8 @@ public class ConsoleUI {
     private final UserService userService;
     private final Scanner scanner;
 
-    public ConsoleUI(DocumentService documentService, LoanService loanService, ReservationService reservationService, UserService userService) {
+    public ConsoleUI(DocumentService documentService, LoanService loanService,
+                     ReservationService reservationService, UserService userService) {
         this.documentService = documentService;
         this.loanService = loanService;
         this.reservationService = reservationService;
@@ -119,6 +115,7 @@ public class ConsoleUI {
             System.out.println("1. Create Document");
             System.out.println("2. Update Document");
             System.out.println("3. Delete Document");
+            System.out.println("4. List All Documents");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
@@ -131,6 +128,9 @@ public class ConsoleUI {
                     break;
                 case "3":
                     deleteDocument();
+                    break;
+                case "4":
+                    listAllDocuments();
                     break;
                 case "0":
                     return;
@@ -145,6 +145,7 @@ public class ConsoleUI {
             System.out.println("\n🔖 Reservation Management");
             System.out.println("1. Reserve Document");
             System.out.println("2. Cancel Reservation");
+            System.out.println("3. List All Reservations");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
@@ -154,6 +155,9 @@ public class ConsoleUI {
                     break;
                 case "2":
                     cancelReservation();
+                    break;
+                case "3":
+                    listAllReservations();
                     break;
                 case "0":
                     return;
@@ -168,6 +172,7 @@ public class ConsoleUI {
             System.out.println("\n📤 Loan Management");
             System.out.println("1. Loan Document");
             System.out.println("2. Return Document");
+            System.out.println("3. List All Loans");
             System.out.println("0. Back to Main Menu");
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
@@ -178,6 +183,9 @@ public class ConsoleUI {
                 case "2":
                     returnDocument();
                     break;
+                case "3":
+                    listAllLoans();
+                    break;
                 case "0":
                     return;
                 default:
@@ -186,6 +194,7 @@ public class ConsoleUI {
         }
     }
 
+    // User management methods
     private void createUser() {
         System.out.print("Enter user name: ");
         String name = scanner.nextLine();
@@ -204,7 +213,9 @@ public class ConsoleUI {
         if (type.equalsIgnoreCase("Student")) {
             System.out.print("Enter student ID: ");
             String studentId = scanner.nextLine();
-            user = new Student(UUID.randomUUID(), name, email, phoneNumber, studentId);
+            System.out.print("Enter department: ");
+            String department = scanner.nextLine();
+            user = new Student(UUID.randomUUID(), name, email, phoneNumber, studentId, department);
         } else if (type.equalsIgnoreCase("Professor")) {
             System.out.print("Enter department: ");
             String department = scanner.nextLine();
@@ -214,26 +225,21 @@ public class ConsoleUI {
             return;
         }
 
-        userService.createUser(user);
+        userService.addUser(user);
         System.out.println("✅ User created successfully.");
     }
 
     private void updateUser() {
-        System.out.print("Enter user ID to update: ");
-        String userIdStr = scanner.nextLine();
-        UUID userId = UUID.fromString(userIdStr);
+        System.out.print("Enter user name to update: ");
+        String userName = scanner.nextLine();
 
-        User user = userService.findUserById(userId).orElse(null);
-        if (user == null) {
+        Optional<User> optionalUser = userService.getUserByName(userName);
+        if (optionalUser.isEmpty()) {
             System.out.println("❌ User not found. Please try again.");
             return;
         }
 
-        System.out.print("Enter new name (or press enter to keep current): ");
-        String name = scanner.nextLine();
-        if (!name.isEmpty()) {
-            user.setName(name);
-        }
+        User user = optionalUser.get();
 
         System.out.print("Enter new email (or press enter to keep current): ");
         String email = scanner.nextLine();
@@ -252,73 +258,89 @@ public class ConsoleUI {
     }
 
     private void deleteUser() {
-        System.out.print("Enter user ID to delete: ");
-        String userIdStr = scanner.nextLine();
-        UUID userId = UUID.fromString(userIdStr);
-
-        userService.deleteUser(userId);
+        System.out.print("Enter user name to delete: ");
+        String userName = scanner.nextLine();
+    
+        userService.deleteUser(userName);
         System.out.println("✅ User deleted successfully.");
     }
-private void createDocument() {
-    System.out.print("Enter document title: ");
-    String title = scanner.nextLine();
-    if (!InputValidator.isValidTitle(title)) {
-        System.out.println("❌ Invalid title. Please try again.");
-        return;
-    }
-    System.out.print("Enter author: ");
-    String author = scanner.nextLine();
-    System.out.print("Enter publisher: ");
-    String publisher = scanner.nextLine();
-    System.out.print("Enter publication year: ");
-    int publicationYear = Integer.parseInt(scanner.nextLine());
-    System.out.print("Enter document type (Book/Magazine/ScientificJournal/UniversityThesis): ");
-    String type = scanner.nextLine();
 
-    Document document;
-    switch (type.toLowerCase()) {
-        case "book":
-            document = new Book(UUID.randomUUID(), title, author, publisher, publicationYear);
-            break;
-        case "magazine":
-            document = new Magazine(UUID.randomUUID(), title, author, publisher, publicationYear);
-            break;
-        case "scientificjournal":
-            System.out.print("Enter research field: ");
-            String researchField = scanner.nextLine();
-            document = new ScientificJournal(UUID.randomUUID(), title, author, publisher, publicationYear, researchField);
-            break;
-        case "universitythesis":
-            System.out.print("Enter university: ");
-            String university = scanner.nextLine();
-            System.out.print("Enter field: ");
-            String field = scanner.nextLine();
-            document = new UniversityThesis(UUID.randomUUID(), title, author, publisher, publicationYear, university, field);
-            break;
-        default:
-            System.out.println("❌ Invalid document type. Please try again.");
-            return;
+    private void listAllUsers() {
+        List<User> users = userService.getAllUsers();
+        if (users.isEmpty()) {
+            System.out.println("❌ No users found.");
+        } else {
+            System.out.println("👥 All users:");
+            for (User user : users) {
+                System.out.println("-----------------------------------");
+                System.out.println("👤 Name: " + user.getName());
+                System.out.println("📧 Email: " + user.getEmail());
+                System.out.println("📞 Phone: " + user.getPhoneNumber());
+                if (user instanceof Student) {
+                    System.out.println("🎓 Student ID: " + ((Student) user).getStudentId());
+                    System.out.println("🏫 Department: " + ((Student) user).getDepartment());
+                } else if (user instanceof Professor) {
+                    System.out.println("🏫 Department: " + ((Professor) user).getDepartment());
+                }
+            }
+            System.out.println("-----------------------------------");
+        }
     }
 
-    documentService.createDocument(document);
-    System.out.println("✅ Document created successfully.");
-}
+    // Document management methods
+    private void createDocument() {
+        System.out.print("Enter document title: ");
+        String title = scanner.nextLine();
+        System.out.print("Enter author: ");
+        String author = scanner.nextLine();
+        System.out.print("Enter publisher: ");
+        String publisher = scanner.nextLine();
+        System.out.print("Enter publication year: ");
+        int publicationYear = Integer.parseInt(scanner.nextLine());
+        System.out.print("Enter document type (Book/Magazine/ScientificJournal/UniversityThesis): ");
+        String type = scanner.nextLine();
+
+        Document document;
+        UUID id = UUID.randomUUID();
+        switch (type.toLowerCase()) {
+            case "book":
+                document = new Book(id, title, author, publisher, publicationYear);
+                break;
+            case "magazine":
+                document = new Magazine(id, title, author, publisher, publicationYear);
+                break;
+            case "scientificjournal":
+                System.out.print("Enter research field: ");
+                String researchField = scanner.nextLine();
+                document = new ScientificJournal(id, title, author, publisher, publicationYear, researchField);
+                break;
+            case "universitythesis":
+                System.out.print("Enter university: ");
+                String university = scanner.nextLine();
+                System.out.print("Enter field: ");
+                String field = scanner.nextLine();
+                document = new UniversityThesis(id, title, author, publisher, publicationYear, university, field);
+                break;
+            default:
+                System.out.println("❌ Invalid document type. Please try again.");
+                return;
+        }
+
+        documentService.addDocument(document);
+        System.out.println("✅ Document created successfully.");
+    }
+
     private void updateDocument() {
-        System.out.print("Enter document ID to update: ");
-        String documentIdStr = scanner.nextLine();
-        UUID documentId = UUID.fromString(documentIdStr);
+        System.out.print("Enter document title to update: ");
+        String documentTitle = scanner.nextLine();
 
-        Document document = documentService.findDocumentById(documentId).orElse(null);
-        if (document == null) {
+        Optional<Document> optionalDocument = documentService.getDocumentByTitle(documentTitle);
+        if (optionalDocument.isEmpty()) {
             System.out.println("❌ Document not found. Please try again.");
             return;
         }
 
-        System.out.print("Enter new title (or press enter to keep current): ");
-        String title = scanner.nextLine();
-        if (!title.isEmpty()) {
-            document.setTitle(title);
-        }
+        Document document = optionalDocument.get();
 
         System.out.print("Enter new author (or press enter to keep current): ");
         String author = scanner.nextLine();
@@ -344,51 +366,93 @@ private void createDocument() {
     }
 
     private void deleteDocument() {
-        System.out.print("Enter document ID to delete: ");
-        String documentIdStr = scanner.nextLine();
-        UUID documentId = UUID.fromString(documentIdStr);
+        System.out.print("Enter document title to delete: ");
+        String documentTitle = scanner.nextLine();
 
-        documentService.deleteDocument(documentId);
+        documentService.deleteDocument(documentTitle);
         System.out.println("✅ Document deleted successfully.");
     }
 
+    private void listAllDocuments() {
+        List<Document> documents = documentService.getAllDocuments();
+        if (documents.isEmpty()) {
+            System.out.println("❌ No documents found.");
+        } else {
+            System.out.println("📚 All documents:");
+            for (Document doc : documents) {
+                System.out.println("-----------------------------------");
+                System.out.println("📕 Title: " + doc.getTitle());
+                System.out.println("✍️ Author: " + doc.getAuthor());
+                System.out.println("🏢 Publisher: " + doc.getPublisher());
+                System.out.println("📅 Publication Year: " + doc.getPublicationYear());
+                System.out.println("📊 Type: " + doc.getType());
+                if (doc instanceof ScientificJournal) {
+                    System.out.println("🔬 Research Field: " + ((ScientificJournal) doc).getResearchField());
+                } else if (doc instanceof UniversityThesis) {
+                    System.out.println("🎓 University: " + ((UniversityThesis) doc).getUniversity());
+                    System.out.println("📚 Field: " + ((UniversityThesis) doc).getField());
+                }
+                boolean isLoaned = loanService.isDocumentLoaned(doc.getTitle());
+                System.out.println("📊 Status: " + (isLoaned ? "🔴 Loaned" : "🟢 Available"));
+
+                List<Reservation> reservations = reservationService.getReservationsForDocument(doc.getTitle());
+                if (!reservations.isEmpty()) {
+                    System.out.println("🔖 Reserved by:");
+                    for (Reservation reservation : reservations) {
+                        System.out.println("   👤 " + reservation.getUserName());
+                    }
+                }
+            }
+            System.out.println("-----------------------------------");
+        }
+    }
+
+    // Reservation management methods
     private void reserveDocument() {
         System.out.print("Enter user name: ");
         String userName = scanner.nextLine();
         System.out.print("Enter document title: ");
         String documentTitle = scanner.nextLine();
-    
-        User user = userService.findUserByName(userName).orElse(null);
-        Document document = documentService.findDocumentByTitle(documentTitle).orElse(null);
-    
-        if (user == null || document == null) {
-            System.out.println("❌ User or document not found. Please try again.");
-            return;
-        }
-    
-        Reservation reservation = new Reservation(UUID.randomUUID(), document.getId(), user.getId(), LocalDate.now());
-        boolean reserved = reservationService.reserveDocument(reservation);
-    
-        if (reserved) {
+
+        try {
+            reservationService.reserveDocument(documentTitle, userName);
             System.out.println("✅ Document reserved successfully.");
-        } else {
-            System.out.println("❌ Unable to reserve the document. It may not be loaned or you may already have a reservation for it.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ " + e.getMessage());
         }
     }
 
     private void cancelReservation() {
-        System.out.print("Enter reservation ID: ");
-        String reservationIdStr = scanner.nextLine();
-        UUID reservationId = UUID.fromString(reservationIdStr);
+        System.out.print("Enter user name: ");
+        String userName = scanner.nextLine();
+        System.out.print("Enter document title: ");
+        String documentTitle = scanner.nextLine();
 
-        boolean canceled = reservationService.cancelReservation(reservationId);
-        if (canceled) {
+        try {
+            reservationService.cancelReservation(documentTitle, userName);
             System.out.println("✅ Reservation canceled successfully.");
-        } else {
-            System.out.println("❌ Unable to cancel reservation. Reservation not found.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ " + e.getMessage());
         }
     }
 
+    private void listAllReservations() {
+        List<Reservation> reservations = reservationService.getAllReservations();
+        if (reservations.isEmpty()) {
+            System.out.println("❌ No reservations found.");
+        } else {
+            System.out.println("🔖 All reservations:");
+            for (Reservation reservation : reservations) {
+                System.out.println("-----------------------------------");
+                System.out.println("📕 Document: " + reservation.getDocumentTitle());
+                System.out.println("👤 User: " + reservation.getUserName());
+                System.out.println("📅 Reservation Date: " + reservation.getReservationDate());
+            }
+            System.out.println("-----------------------------------");
+        }
+    }
+
+    // Loan management methods
     private void loanDocument() {
         System.out.print("Enter user name: ");
         String userName = scanner.nextLine();
@@ -401,23 +465,13 @@ private void createDocument() {
             return;
         }
         LocalDate loanDate = DateUtils.parseDate(loanDateStr);
-    
-        User user = userService.findUserByName(userName).orElse(null);
-        Document document = documentService.findDocumentByTitle(documentTitle).orElse(null);
-    
-        if (user == null || document == null) {
-            System.out.println("❌ User or document not found. Please try again.");
-            return;
+
+        try {
+            loanService.loanDocument(documentTitle, userName);
+            System.out.println("✅ Document loaned successfully.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
-    
-        if (loanService.isDocumentLoaned(document.getId())) {
-            System.out.println("❌ This document is already loaned. Please try another document.");
-            return;
-        }
-    
-        Loan loan = new Loan(UUID.randomUUID(), document.getId(), user.getId(), loanDate, null);
-        loanService.borrowDocument(loan);
-        System.out.println("✅ Document loaned successfully.");
     }
 
     private void returnDocument() {
@@ -432,31 +486,57 @@ private void createDocument() {
             return;
         }
         LocalDate returnDate = DateUtils.parseDate(returnDateStr);
-    
-        User user = userService.findUserByName(userName).orElse(null);
-        Document document = documentService.findDocumentByTitle(documentTitle).orElse(null);
-    
-        if (user == null || document == null) {
-            System.out.println("❌ User or document not found. Please try again.");
-            return;
+
+        try {
+            loanService.returnDocument(documentTitle, userName);
+            System.out.println("✅ Document returned successfully.");
+
+            // Check if there are any reservations for this document
+            List<Reservation> reservations = reservationService.getReservationsForDocument(documentTitle);
+            if (!reservations.isEmpty()) {
+                System.out.println("📢 Notification: The document '" + documentTitle +
+                        "' is now available for user '" + reservations.get(0).getUserName() + "'");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
-    
-        Loan loan = loanService.findLoanByUserAndDocument(user.getId(), document.getId()).orElse(null);
-        if (loan == null) {
-            System.out.println("❌ No active loan found for this user and document.");
-            return;
+    }
+
+    private void listAllLoans() {
+        List<Loan> loans = loanService.getAllLoans();
+        if (loans.isEmpty()) {
+            System.out.println("❌ No loans found.");
+        } else {
+            System.out.println("📚 All loans:");
+            for (Loan loan : loans) {
+                System.out.println("-----------------------------------");
+                System.out.println("📕 Document: " + loan.getDocumentTitle());
+                System.out.println("👤 User: " + loan.getUserName());
+                System.out.println("📅 Loan Date: " + DateUtils.formatDate(loan.getLoanDate()));
+                System.out.println("📅 Return Date: " +
+                        (loan.getReturnDate() != null ? DateUtils.formatDate(loan.getReturnDate()) : "Not returned yet"));
+
+                // Calculate and display the loan duration or days overdue
+                if (loan.getReturnDate() != null) {
+                    long daysLoaned = ChronoUnit.DAYS.between(loan.getLoanDate(), loan.getReturnDate());
+                    System.out.println("⏳ Loan Duration: " + daysLoaned + " days");
+                } else {
+                    long daysOverdue = ChronoUnit.DAYS.between(loan.getLoanDate(), LocalDate.now()) - 14; // Assuming 14-day loan period
+                    if (daysOverdue > 0) {
+                        System.out.println("⚠️ Overdue by: " + daysOverdue + " days");
+                    } else {
+                        System.out.println("✅ Due in: " + (-daysOverdue) + " days");
+                    }
+                }
+            }
+            System.out.println("-----------------------------------");
         }
-    
-        loanService.returnDocument(loan.getId(), returnDate);
-        System.out.println("✅ Document returned successfully.");
     }
 
     private void searchDocuments() {
         System.out.print("Enter search term: ");
         String searchTerm = scanner.nextLine();
-        List<Document> documents = documentService.getAllDocuments().stream()
-            .filter(doc -> doc.getTitle().toLowerCase().contains(searchTerm.toLowerCase()))
-            .collect(Collectors.toList());
+        List<Document> documents = documentService.searchDocuments(searchTerm);
         if (documents.isEmpty()) {
             System.out.println("❌ No documents found.");
         } else {
@@ -466,63 +546,4 @@ private void createDocument() {
             }
         }
     }
-
-    private void listAllUsers() {
-        List<User> users = userService.getAllUsers();
-        if (users.isEmpty()) {
-            System.out.println("❌ No users found.");
-        } else {
-            System.out.println("👥 All users:");
-            for (User user : users) {
-                System.out.println("-----------------------------------");
-                System.out.println("👤 Name: " + user.getName());
-                System.out.println("📧 Email: " + user.getEmail());
-                System.out.println("📞 Phone: " + user.getPhoneNumber());
-                System.out.println("🏷️ Type: " + user.getType());
-                if (user instanceof Student) {
-                    System.out.println("🎓 Student ID: " + ((Student) user).getStudentId());
-                } else if (user instanceof Professor) {
-                    System.out.println("🏫 Department: " + ((Professor) user).getDepartment());
-                }
-            }
-            System.out.println("-----------------------------------");
-        }
-    }
-
-    private void listAllDocuments() {
-        List<Document> documents = documentService.getAllDocuments();
-        if (documents.isEmpty()) {
-            System.out.println("❌ No documents found.");
-        } else {
-            System.out.println("📚 All documents:");
-            for (Document doc : documents) {
-                System.out.println("-----------------------------------");
-                System.out.println("📖 Title: " + doc.getTitle());
-                System.out.println("✍️ Author: " + doc.getAuthor());
-                System.out.println("🏢 Publisher: " + doc.getPublisher());
-                System.out.println("📅 Publication Year: " + doc.getPublicationYear());
-                System.out.println("🏷️ Type: " + doc.getType());
-                if (doc instanceof ScientificJournal) {
-                    System.out.println("🔬 Research Field: " + ((ScientificJournal) doc).getResearchField());
-                } else if (doc instanceof UniversityThesis) {
-                    System.out.println("🎓 University: " + ((UniversityThesis) doc).getUniversity());
-                    System.out.println("📚 Field: " + ((UniversityThesis) doc).getField());
-                }
-                boolean isLoaned = loanService.isDocumentLoaned(doc.getId());
-                System.out.println("📊 Status: " + (isLoaned ? "🔴 Loaned" : "🟢 Available"));
-                
-                List<UUID> reservingUsers = reservationService.getUsersReservingDocument(doc.getId());
-                if (!reservingUsers.isEmpty()) {
-                    System.out.println("🔖 Reserved by:");
-                    for (UUID userId : reservingUsers) {
-                        User user = userService.findUserById(userId).orElse(null);
-                        if (user != null) {
-                            System.out.println("   👤 " + user.getName());
-                        }
-                    }
-                }
-            }
-            System.out.println("-----------------------------------");
-        }
-    }
-}
+}        

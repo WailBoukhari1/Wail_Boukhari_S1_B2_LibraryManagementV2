@@ -8,15 +8,13 @@ import com.library.service.UserService;
 
 public class Main {
     public static void main(String[] args) {
-        // Initialize services
-        DocumentService DocumentService = new DocumentService();
+        DocumentService documentService = new DocumentService();
         UserService userService = new UserService();
-        ReservationService reservationService = new ReservationService();
-        LoanService loanService = new LoanService(reservationService);
-        reservationService.setLoanService(loanService);
+        LoanService loanService = new LoanService();
+        ReservationService reservationService = new ReservationService(loanService);
 
         // Initialize and start the console UI
-        ConsoleUI consoleUI = new ConsoleUI(DocumentService, loanService, reservationService, userService);
+        ConsoleUI consoleUI = new ConsoleUI(documentService, loanService, reservationService, userService);
         consoleUI.start();
     }
 }
