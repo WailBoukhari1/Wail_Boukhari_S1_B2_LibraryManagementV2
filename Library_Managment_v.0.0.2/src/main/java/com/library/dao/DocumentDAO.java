@@ -1,12 +1,19 @@
 package com.library.dao;
 
-import com.library.model.document.*;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.library.model.document.Book;
+import com.library.model.document.Document;
+import com.library.model.document.Magazine;
+import com.library.model.document.ScientificJournal;
+import com.library.model.document.UniversityThesis;
 
 public class DocumentDAO {
     private static DocumentDAO instance;
@@ -21,93 +28,113 @@ public class DocumentDAO {
     }
 
     public void save(Document document) {
-        String sql = "INSERT INTO library_documents (id, title, author, publisher, publication_year) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO library_documents (id, title, author, publisher, publication_year, type) VALUES (?, ?, ?, ?, ?, ?)";
+        UUID id = UUID.randomUUID();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            UUID id = UUID.randomUUID();
-            stmt.setObject(1, id);
-            stmt.setString(2, document.getTitle());
-            stmt.setString(3, document.getAuthor());
-            stmt.setString(4, document.getPublisher());
-            stmt.setInt(5, document.getPublicationYear());
+            setDocumentParams(stmt, id, document);
+            stmt.setString(6, document.getClass().getSimpleName());
             stmt.executeUpdate();
-
-            saveSpecificDocument(id, document);
+            saveSpecificDocument(conn, id, document);
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error saving document", e);
         }
     }
+
     public boolean documentExists(String title) {
         String sql = "SELECT COUNT(*) FROM library_documents WHERE title = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, title);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+                return rs.next() && rs.getInt(1) > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error checking document existence", e);
+            return false;
         }
-        return false;
     }
-    private void saveSpecificDocument(UUID id, Document document) throws SQLException {
+
+    private void saveSpecificDocument(Connection conn, UUID id, Document document) throws SQLException {
         String tableName = getTableName(document);
-        String sql = String.format("INSERT INTO %s (id, title, author, publisher, publication_year, type) VALUES (?, ?, ?, ?, ?, ?)", tableName);
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql;
+        if (document instanceof Book) {
+            sql = String.format("INSERT INTO %s (id, title, author, publisher, publication_year, type, isbn) VALUES (?, ?, ?, ?, ?, ?, ?)", tableName);
+        } else if (document instanceof Magazine) {
+            sql = String.format("INSERT INTO %s (id, title, author, publisher, publication_year, type, issue_number) VALUES (?, ?, ?, ?, ?, ?, ?)", tableName);
+        } else if (document instanceof ScientificJournal) {
+            sql = String.format("INSERT INTO %s (id, title, author, publisher, publication_year, type, research_field) VALUES (?, ?, ?, ?, ?, ?, ?)", tableName);
+        } else if (document instanceof UniversityThesis) {
+            sql = String.format("INSERT INTO %s (id, title, author, publisher, publication_year, type, university, field) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", tableName);
+        } else {
+            sql = String.format("INSERT INTO %s (id, title, author, publisher, publication_year, type) VALUES (?, ?, ?, ?, ?, ?)", tableName);
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setObject(1, id);
             stmt.setString(2, document.getTitle());
             stmt.setString(3, document.getAuthor());
             stmt.setString(4, document.getPublisher());
             stmt.setInt(5, document.getPublicationYear());
-            stmt.setString(6, document.getType());
-            
-            if (document instanceof ScientificJournal) {
+            stmt.setString(6, document.getClass().getSimpleName());
+            if (document instanceof Book) {
+                stmt.setString(7, ((Book) document).getIsbn());
+            } else if (document instanceof Magazine) {
+                stmt.setInt(7, ((Magazine) document).getIssueNumber());
+            } else if (document instanceof ScientificJournal) {
                 stmt.setString(7, ((ScientificJournal) document).getResearchField());
             } else if (document instanceof UniversityThesis) {
-                stmt.setString(7, ((UniversityThesis) document).getUniversity());
-                stmt.setString(8, ((UniversityThesis) document).getField());
+                UniversityThesis thesis = (UniversityThesis) document;
+                stmt.setString(7, thesis.getUniversity());
+                stmt.setString(8, thesis.getField());
             }
-            
             stmt.executeUpdate();
         }
     }
-
     public void update(Document document) {
         String sql = "UPDATE library_documents SET author = ?, publisher = ?, publication_year = ? WHERE title = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, document.getAuthor());
-            stmt.setString(2, document.getPublisher());
-            stmt.setInt(3, document.getPublicationYear());
-            stmt.setString(4, document.getTitle());
+            setUpdateParams(stmt, document);
             stmt.executeUpdate();
-
-            updateSpecificDocument(document);
+            updateSpecificDocument(conn, document);
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error updating document", e);
         }
     }
 
-    private void updateSpecificDocument(Document document) throws SQLException {
+    private void updateSpecificDocument(Connection conn, Document document) throws SQLException {
         String tableName = getTableName(document);
-        String sql = String.format("UPDATE %s SET author = ?, publisher = ?, publication_year = ? WHERE title = ?", tableName);
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, document.getAuthor());
-            stmt.setString(2, document.getPublisher());
-            stmt.setInt(3, document.getPublicationYear());
-            stmt.setString(4, document.getTitle());
-            
-            if (document instanceof ScientificJournal) {
-                stmt.setString(5, ((ScientificJournal) document).getResearchField());
+        String sql;
+        if (document instanceof Book) {
+            sql = String.format("UPDATE %s SET author = ?, publisher = ?, publication_year = ?, isbn = ? WHERE title = ?", tableName);
+        } else if (document instanceof Magazine) {
+            sql = String.format("UPDATE %s SET author = ?, publisher = ?, publication_year = ?, issue_number = ? WHERE title = ?", tableName);
+        } else if (document instanceof ScientificJournal) {
+            sql = String.format("UPDATE %s SET author = ?, publisher = ?, publication_year = ?, research_field = ? WHERE title = ?", tableName);
+        } else if (document instanceof UniversityThesis) {
+            sql = String.format("UPDATE %s SET author = ?, publisher = ?, publication_year = ?, university = ?, field = ? WHERE title = ?", tableName);
+        } else {
+            sql = String.format("UPDATE %s SET author = ?, publisher = ?, publication_year = ? WHERE title = ?", tableName);
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            setUpdateParams(stmt, document);
+            if (document instanceof Book) {
+                stmt.setString(4, ((Book) document).getIsbn());
+                stmt.setString(5, document.getTitle());
+            } else if (document instanceof Magazine) {
+                stmt.setInt(4, ((Magazine) document).getIssueNumber());
+                stmt.setString(5, document.getTitle());
+            } else if (document instanceof ScientificJournal) {
+                stmt.setString(4, ((ScientificJournal) document).getResearchField());
+                stmt.setString(5, document.getTitle());
             } else if (document instanceof UniversityThesis) {
-                stmt.setString(5, ((UniversityThesis) document).getUniversity());
-                stmt.setString(6, ((UniversityThesis) document).getField());
+                UniversityThesis thesis = (UniversityThesis) document;
+                stmt.setString(4, thesis.getUniversity());
+                stmt.setString(5, thesis.getField());
+                stmt.setString(6, document.getTitle());
+            } else {
+                stmt.setString(4, document.getTitle());
             }
-            
             stmt.executeUpdate();
         }
     }
@@ -119,13 +146,18 @@ public class DocumentDAO {
             stmt.setString(1, title);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error deleting document", e);
         }
     }
 
     public List<Document> findAll() {
         List<Document> documents = new ArrayList<>();
-        String sql = "SELECT * FROM library_documents";
+        String sql = "SELECT ld.*, b.isbn, m.issue_number, sj.research_field, ut.university, ut.field " +
+                     "FROM library_documents ld " +
+                     "LEFT JOIN books b ON ld.id = b.id " +
+                     "LEFT JOIN magazines m ON ld.id = m.id " +
+                     "LEFT JOIN scientific_journals sj ON ld.id = sj.id " +
+                     "LEFT JOIN university_theses ut ON ld.id = ut.id";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -133,25 +165,29 @@ public class DocumentDAO {
                 documents.add(createDocumentFromResultSet(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error finding all documents", e);
         }
         return documents;
     }
 
     public Optional<Document> findByTitle(String title) {
-        String sql = "SELECT * FROM library_documents WHERE title = ?";
+        String sql = "SELECT ld.*, b.isbn, m.issue_number, sj.research_field, ut.university, ut.field " +
+                     "FROM library_documents ld " +
+                     "LEFT JOIN books b ON ld.id = b.id " +
+                     "LEFT JOIN magazines m ON ld.id = m.id " +
+                     "LEFT JOIN scientific_journals sj ON ld.id = sj.id " +
+                     "LEFT JOIN university_theses ut ON ld.id = ut.id " +
+                     "WHERE ld.title = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, title);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(createDocumentFromResultSet(rs));
-                }
+                return rs.next() ? Optional.of(createDocumentFromResultSet(rs)) : Optional.empty();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error finding document by title", e);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     private Document createDocumentFromResultSet(ResultSet rs) throws SQLException {
@@ -162,11 +198,17 @@ public class DocumentDAO {
         int publicationYear = rs.getInt("publication_year");
         String type = getDocumentType(title);
 
+        if (type == null) {
+            throw new IllegalArgumentException("Unknown document type for title: " + title);
+        }
+
         switch (type) {
             case "Book":
-                return new Book(id, title, author, publisher, publicationYear);
+                String isbn = rs.getString("isbn");
+                return new Book(id, title, author, publisher, publicationYear, isbn);
             case "Magazine":
-                return new Magazine(id, title, author, publisher, publicationYear);
+                int issueNumber = rs.getInt("issue_number");
+                return new Magazine(id, title, author, publisher, publicationYear, issueNumber);
             case "ScientificJournal":
                 String researchField = getResearchField(title);
                 return new ScientificJournal(id, title, author, publisher, publicationYear, researchField);
@@ -204,45 +246,49 @@ public class DocumentDAO {
         throw new SQLException("Document not found in any table");
     }
 
-    private String getResearchField(String title) throws SQLException {
-        String sql = "SELECT research_field FROM scientific_journals WHERE title = ?";
+    private String getFieldFromTable(String title, String table, String field) throws SQLException {
+        String sql = String.format("SELECT %s FROM %s WHERE title = ?", field, table);
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, title);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getString("research_field");
+                    return rs.getString(field);
                 }
             }
         }
-        throw new SQLException("Research field not found for title: " + title);
+        throw new SQLException(field + " not found for title: " + title);
+    }
+
+    private String getResearchField(String title) throws SQLException {
+        return getFieldFromTable(title, "scientific_journals", "research_field");
     }
 
     private String getUniversity(String title) throws SQLException {
-        String sql = "SELECT university FROM university_theses WHERE title = ?";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, title);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString("university");
-                }
-            }
-        }
-        throw new SQLException("University not found for title: " + title);
+        return getFieldFromTable(title, "university_theses", "university");
     }
 
     private String getField(String title) throws SQLException {
-        String sql = "SELECT field FROM university_theses WHERE title = ?";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, title);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString("field");
-                }
-            }
-        }
-        throw new SQLException("Field not found for title: " + title);
+        return getFieldFromTable(title, "university_theses", "field");
+    }
+
+    private void setDocumentParams(PreparedStatement stmt, UUID id, Document document) throws SQLException {
+        stmt.setObject(1, id);
+        stmt.setString(2, document.getTitle());
+        stmt.setString(3, document.getAuthor());
+        stmt.setString(4, document.getPublisher());
+        stmt.setInt(5, document.getPublicationYear());
+    }
+
+    private void setUpdateParams(PreparedStatement stmt, Document document) throws SQLException {
+        stmt.setString(1, document.getAuthor());
+        stmt.setString(2, document.getPublisher());
+        stmt.setInt(3, document.getPublicationYear());
+        stmt.setString(4, document.getTitle());
+    }
+
+    private void handleException(String message, SQLException e) {
+        // Log the exception or handle it according to your application's needs
+        System.err.println(message + ": " + e.getMessage());
     }
 }

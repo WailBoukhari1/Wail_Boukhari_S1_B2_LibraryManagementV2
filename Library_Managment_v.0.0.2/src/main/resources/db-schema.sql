@@ -23,30 +23,37 @@ CREATE TABLE library_documents (
     title VARCHAR(255) UNIQUE NOT NULL,
     author VARCHAR(255) NOT NULL,
     publisher VARCHAR(255) NOT NULL,
-    publication_year INT NOT NULL
+    publication_year INT NOT NULL,
+    type VARCHAR(50) NOT NULL
 );
 
 -- Create the book table that inherits from the library_documents table
 CREATE TABLE books (
-    type VARCHAR(50) DEFAULT 'Book'
+    id UUID PRIMARY KEY REFERENCES library_documents(id),
+    isbn VARCHAR(13) NOT NULL,
+    CHECK (type = 'Book')
 ) INHERITS (library_documents);
 
 -- Create the magazine table that inherits from the library_documents table
 CREATE TABLE magazines (
-    type VARCHAR(50) DEFAULT 'Magazine'
+    id UUID PRIMARY KEY REFERENCES library_documents(id),
+    issue_number INT NOT NULL,
+    CHECK (type = 'Magazine')
 ) INHERITS (library_documents);
 
 -- Create the scientific journal table that inherits from the library_documents table
 CREATE TABLE scientific_journals (
-    type VARCHAR(50) DEFAULT 'ScientificJournal',
-    research_field VARCHAR(255) NOT NULL
+    id UUID PRIMARY KEY REFERENCES library_documents(id),
+    research_field VARCHAR(255) NOT NULL,
+    CHECK (type = 'ScientificJournal')
 ) INHERITS (library_documents);
 
 -- Create the university thesis table that inherits from the library_documents table
 CREATE TABLE university_theses (
-    type VARCHAR(50) DEFAULT 'UniversityThesis',
+    id UUID PRIMARY KEY REFERENCES library_documents(id),
     university VARCHAR(255) NOT NULL,
-    field VARCHAR(255) NOT NULL
+    field VARCHAR(255) NOT NULL,
+    CHECK (type = 'UniversityThesis')
 ) INHERITS (library_documents);
 
 -- Create the loans table

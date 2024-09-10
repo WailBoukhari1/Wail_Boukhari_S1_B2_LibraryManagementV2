@@ -1,13 +1,16 @@
 package com.library.dao;
 
-import com.library.model.Loan;
-
-import java.sql.*;
-import java.time.LocalDate;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.library.model.Loan;
 
 public class LoanDAO {
     private static LoanDAO instance;
@@ -25,28 +28,22 @@ public class LoanDAO {
         String sql = "INSERT INTO loans (id, document_title, user_name, loan_date, return_date) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setObject(1, UUID.randomUUID());
-            stmt.setString(2, loan.getDocumentTitle());
-            stmt.setString(3, loan.getUserName());
-            stmt.setDate(4, java.sql.Date.valueOf(loan.getLoanDate()));
-            stmt.setDate(5, loan.getReturnDate() != null ? java.sql.Date.valueOf(loan.getReturnDate()) : null);
+            setLoanParameters(stmt, loan);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error saving loan", e);
         }
     }
 
     public void update(Loan loan) {
-        String sql = "UPDATE loans SET return_date = ? WHERE document_title = ? AND user_name = ? AND loan_date = ?";
+        String sql = "UPDATE loans SET return_date = ? WHERE id = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDate(1, loan.getReturnDate() != null ? java.sql.Date.valueOf(loan.getReturnDate()) : null);
-            stmt.setString(2, loan.getDocumentTitle());
-            stmt.setString(3, loan.getUserName());
-            stmt.setDate(4, java.sql.Date.valueOf(loan.getLoanDate()));
+            stmt.setObject(2, loan.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error updating loan", e);
         }
     }
 
@@ -60,7 +57,7 @@ public class LoanDAO {
                 loans.add(createLoanFromResultSet(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error finding all loans", e);
         }
         return loans;
     }
@@ -72,24 +69,34 @@ public class LoanDAO {
             stmt.setString(1, documentTitle);
             stmt.setString(2, userName);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(createLoanFromResultSet(rs));
-                }
+                return rs.next() ? Optional.of(createLoanFromResultSet(rs)) : Optional.empty();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error finding loan by document and user", e);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     private Loan createLoanFromResultSet(ResultSet rs) throws SQLException {
-        UUID id = (UUID) rs.getObject("id");
-        String documentTitle = rs.getString("document_title");
-        String userName = rs.getString("user_name");
-        LocalDate loanDate = rs.getDate("loan_date").toLocalDate();
-        Date returnDateSql = rs.getDate("return_date");
-        LocalDate returnDate = returnDateSql != null ? returnDateSql.toLocalDate() : null;
+        return new Loan(
+            (UUID) rs.getObject("id"),
+            rs.getString("document_title"),
+            rs.getString("user_name"),
+            rs.getDate("loan_date").toLocalDate(),
+            Optional.ofNullable(rs.getDate("return_date")).map(Date::toLocalDate).orElse(null)
+        );
+    }
 
-        return new Loan(id, documentTitle, userName, loanDate, returnDate);
+    private void setLoanParameters(PreparedStatement stmt, Loan loan) throws SQLException {
+        stmt.setObject(1, loan.getId() != null ? loan.getId() : UUID.randomUUID());
+        stmt.setString(2, loan.getDocumentTitle());
+        stmt.setString(3, loan.getUserName());
+        stmt.setDate(4, java.sql.Date.valueOf(loan.getLoanDate()));
+        stmt.setDate(5, loan.getReturnDate() != null ? java.sql.Date.valueOf(loan.getReturnDate()) : null);
+    }
+
+    private void handleException(String message, SQLException e) {
+        // Log the exception or handle it according to your application's needs
+        System.err.println(message + ": " + e.getMessage());
     }
 }

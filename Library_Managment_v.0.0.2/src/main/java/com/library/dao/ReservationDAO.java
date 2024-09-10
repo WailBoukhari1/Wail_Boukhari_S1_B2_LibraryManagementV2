@@ -1,13 +1,15 @@
 package com.library.dao;
 
-import com.library.model.Reservation;
-
-import java.sql.*;
-import java.time.LocalDate;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.library.model.Reservation;
 
 public class ReservationDAO {
     private static ReservationDAO instance;
@@ -27,13 +29,10 @@ public class ReservationDAO {
         String sql = "INSERT INTO reservations (id, document_title, user_name, reservation_date) VALUES (?, ?, ?, ?)";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setObject(1, UUID.randomUUID());
-            stmt.setString(2, reservation.getDocumentTitle());
-            stmt.setString(3, reservation.getUserName());
-            stmt.setDate(4, java.sql.Date.valueOf(reservation.getReservationDate()));
+            setReservationParameters(stmt, reservation);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error saving reservation", e);
         }
     }
 
@@ -44,11 +43,10 @@ public class ReservationDAO {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                Reservation reservation = createReservationFromResultSet(rs);
-                reservations.add(reservation);
+                reservations.add(createReservationFromResultSet(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error finding all reservations", e);
         }
         return reservations;
     }
@@ -61,7 +59,7 @@ public class ReservationDAO {
             stmt.setString(2, userName);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error deleting reservation", e);
         }
     }
 
@@ -72,14 +70,12 @@ public class ReservationDAO {
             stmt.setString(1, documentTitle);
             stmt.setString(2, userName);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(createReservationFromResultSet(rs));
-                }
+                return rs.next() ? Optional.of(createReservationFromResultSet(rs)) : Optional.empty();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error finding reservation by document and user", e);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     public List<Reservation> findByDocument(String documentTitle) {
@@ -94,17 +90,29 @@ public class ReservationDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            handleException("Error finding reservations by document", e);
         }
         return reservations;
     }
 
     private Reservation createReservationFromResultSet(ResultSet rs) throws SQLException {
-        UUID id = (UUID) rs.getObject("id");
-        String documentTitle = rs.getString("document_title");
-        String userName = rs.getString("user_name");
-        LocalDate reservationDate = rs.getDate("reservation_date").toLocalDate();
+        return new Reservation(
+            (UUID) rs.getObject("id"),
+            rs.getString("document_title"),
+            rs.getString("user_name"),
+            rs.getDate("reservation_date").toLocalDate()
+        );
+    }
 
-        return new Reservation(id, documentTitle, userName, reservationDate);
+    private void setReservationParameters(PreparedStatement stmt, Reservation reservation) throws SQLException {
+        stmt.setObject(1, reservation.getId() != null ? reservation.getId() : UUID.randomUUID());
+        stmt.setString(2, reservation.getDocumentTitle());
+        stmt.setString(3, reservation.getUserName());
+        stmt.setDate(4, java.sql.Date.valueOf(reservation.getReservationDate()));
+    }
+
+    private void handleException(String message, SQLException e) {
+        // Log the exception or handle it according to your application's needs
+        System.err.println(message + ": " + e.getMessage());
     }
 }
