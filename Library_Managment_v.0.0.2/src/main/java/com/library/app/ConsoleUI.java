@@ -25,7 +25,8 @@ public class ConsoleUI {
     private final UserService userService;
     private final Scanner scanner;
 
-    public ConsoleUI(DocumentService documentService, LoanService loanService, ReservationService reservationService, UserService userService) {
+    public ConsoleUI(DocumentService documentService, LoanService loanService, ReservationService reservationService,
+            UserService userService) {
         this.documentService = documentService;
         this.loanService = loanService;
         this.reservationService = reservationService;
@@ -44,19 +45,21 @@ public class ConsoleUI {
                 case 3 -> handleLoans();
                 case 4 -> handleReservations();
                 case 5 -> exit = true;
-                default -> System.out.println("❌ Invalid choice. Please try again.");
+                default -> System.out.println(
+                        CostumColor.RED_BOLD_BRIGHT + "❌ Invalid choice. Please try again." + CostumColor.RESET);
             }
         }
         System.out.println("👋 Thank you for using the Library Management System. Goodbye!");
     }
 
     private void printMainMenu() {
-        System.out.println("\n📚 Library Management System");
-        System.out.println("1. 📖 Manage Documents");
-        System.out.println("2. 👥 Manage Users");
-        System.out.println("3. 📅 Manage Loans");
-        System.out.println("4. 🔖 Manage Reservations");
-        System.out.println("5. 🚪 Exit");
+        System.out.println("\n" + CostumColor.BROWN_BACKGROUND + CostumColor.WHITE_BOLD_BRIGHT
+                + "📚 Library Management System" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "1. 📖 Manage Documents" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "2. 👥 Manage Users" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "3. 📅 Manage Loans" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "4. 🔖 Manage Reservations" + CostumColor.RESET);
+        System.out.println(CostumColor.RED_BOLD_BRIGHT + "5. 🚪 Exit" + CostumColor.RESET);
     }
 
     private void handleDocuments() {
@@ -71,37 +74,39 @@ public class ConsoleUI {
                 case 4 -> searchDocuments();
                 case 5 -> listAllDocuments();
                 case 6 -> back = true;
-                default -> System.out.println("❌ Invalid choice. Please try again.");
+                default -> System.out.println(
+                        CostumColor.RED_BOLD_BRIGHT + "❌ Invalid choice. Please try again." + CostumColor.RESET);
             }
         }
     }
 
     private void printDocumentMenu() {
-        System.out.println("\n📖 Document Management");
-        System.out.println("1. ➕ Add Document");
-        System.out.println("2. 🔄 Update Document");
-        System.out.println("3. ❌ Delete Document");
-        System.out.println("4. 🔍 Search Documents");
-        System.out.println("5. 📋 List All Documents");
-        System.out.println("6. ⬅️ Back to Main Menu");
+        System.out.println("\n" + CostumColor.BROWN_BACKGROUND + CostumColor.WHITE_BOLD_BRIGHT
+                + "📖 Document Management" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "1. ➕ Add Document" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "2. 🔄 Update Document" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "3. ❌ Delete Document" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "4. 🔍 Search Documents" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "5. 📋 List All Documents" + CostumColor.RESET);
+        System.out.println(CostumColor.RED_BOLD_BRIGHT + "6. ⬅️ Back to Main Menu" + CostumColor.RESET);
     }
 
     private void addDocument() {
-        System.out.println("\n➕ Add New Document");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "➕ Add New Document" + CostumColor.RESET);
         String title = getStringInput("Enter title: ");
         String author = getStringInput("Enter author: ");
         String publisher = getStringInput("Enter publisher: ");
         int publicationYear = getIntInput("Enter publication year: ");
-    
+
         System.out.println("Select document type:");
         System.out.println("1. 📘 Book");
         System.out.println("2. 📰 Magazine");
         System.out.println("3. 🔬 Scientific Journal");
         System.out.println("4. 🎓 University Thesis");
-    
+
         int typeChoice = getIntInput("Enter your choice: ");
         Document document;
-    
+
         switch (typeChoice) {
             case 1 -> {
                 String isbn = getStringInput("Enter ISBN: ");
@@ -121,22 +126,23 @@ public class ConsoleUI {
                 document = new UniversityThesis(null, title, author, publisher, publicationYear, university, field);
             }
             default -> {
-                System.out.println("❌ Invalid document type. Document not added.");
+                System.out.println(CostumColor.RED_BOLD_BRIGHT + "❌ Invalid document type. Document not added."
+                        + CostumColor.RESET);
                 return;
             }
         }
-    
+
         documentService.addDocument(document);
-        System.out.println("✅ Document added successfully!");
+        System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ Document added successfully!" + CostumColor.RESET);
     }
 
     private void updateDocument() {
-        System.out.println("\n🔄 Update Document");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "🔄 Update Document" + CostumColor.RESET);
         String title = getStringInput("Enter the title of the document to update: ");
         Document document = documentService.getDocumentByTitle(title).orElse(null);
 
         if (document == null) {
-            System.out.println("❌ Document not found.");
+            System.out.println(CostumColor.RED_BOLD_BRIGHT + "❌ Document not found." + CostumColor.RESET);
             return;
         }
 
@@ -147,28 +153,31 @@ public class ConsoleUI {
         String newPublisher = getStringInput("Enter new publisher (press Enter to keep current): ");
         String newYearStr = getStringInput("Enter new publication year (press Enter to keep current): ");
 
-        if (!newAuthor.isEmpty()) document.setAuthor(newAuthor);
-        if (!newPublisher.isEmpty()) document.setPublisher(newPublisher);
+        if (!newAuthor.isEmpty())
+            document.setAuthor(newAuthor);
+        if (!newPublisher.isEmpty())
+            document.setPublisher(newPublisher);
         if (!newYearStr.isEmpty()) {
             try {
                 int newYear = Integer.parseInt(newYearStr);
                 document.setPublicationYear(newYear);
             } catch (NumberFormatException e) {
-                System.out.println("❌ Invalid year format. Year not updated.");
+                System.out.println(
+                        CostumColor.RED_BOLD_BRIGHT + "❌ Invalid year format. Year not updated." + CostumColor.RESET);
             }
         }
 
         documentService.updateDocument(document);
-        System.out.println("✅ Document updated successfully!");
+        System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ Document updated successfully!" + CostumColor.RESET);
     }
 
     private void deleteDocument() {
-        System.out.println("\n❌ Delete Document");
+        System.out.println("\n" + CostumColor.RED_BOLD_BRIGHT + "❌ Delete Document" + CostumColor.RESET);
         String title = getStringInput("Enter the title of the document to delete: ");
         Document document = documentService.getDocumentByTitle(title).orElse(null);
 
         if (document == null) {
-            System.out.println("❌ Document not found.");
+            System.out.println(CostumColor.RED_BOLD_BRIGHT + "❌ Document not found." + CostumColor.RESET);
             return;
         }
 
@@ -178,14 +187,14 @@ public class ConsoleUI {
 
         if (confirm.equalsIgnoreCase("YES")) {
             documentService.deleteDocument(title);
-            System.out.println("✅ Document deleted successfully!");
+            System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ Document deleted successfully!" + CostumColor.RESET);
         } else {
             System.out.println("Deletion cancelled.");
         }
     }
 
     private void searchDocuments() {
-        System.out.println("\n🔍 Search Documents");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "🔍 Search Documents" + CostumColor.RESET);
         String searchTerm = getStringInput("Enter search term: ");
         List<Document> results = documentService.searchDocuments(searchTerm);
 
@@ -201,7 +210,7 @@ public class ConsoleUI {
     }
 
     private void listAllDocuments() {
-        System.out.println("\n📋 All Documents");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "📋 All Documents" + CostumColor.RESET);
         List<Document> documents = documentService.getAllDocuments();
 
         if (documents.isEmpty()) {
@@ -245,22 +254,24 @@ public class ConsoleUI {
                 case 3 -> deleteUser();
                 case 4 -> listAllUsers();
                 case 5 -> back = true;
-                default -> System.out.println("❌ Invalid choice. Please try again.");
+                default -> System.out.println(
+                        CostumColor.RED_BOLD_BRIGHT + "❌ Invalid choice. Please try again." + CostumColor.RESET);
             }
         }
     }
 
     private void printUserMenu() {
-        System.out.println("\n👥 User Management");
-        System.out.println("1. ➕ Add User");
-        System.out.println("2. 🔄 Update User");
-        System.out.println("3. ❌ Delete User");
-        System.out.println("4. 📋 List All Users");
-        System.out.println("5. ⬅️ Back to Main Menu");
+        System.out.println("\n" + CostumColor.BROWN_BACKGROUND + CostumColor.WHITE_BOLD_BRIGHT + "👥 User Management"
+                + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "1. ➕ Add User" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "2. 🔄 Update User" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "3. ❌ Delete User" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "4. 📋 List All Users" + CostumColor.RESET);
+        System.out.println(CostumColor.RED_BOLD_BRIGHT + "5. ⬅️ Back to Main Menu" + CostumColor.RESET);
     }
 
     private void addUser() {
-        System.out.println("\n➕ Add New User");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "➕ Add New User" + CostumColor.RESET);
         String name = getStringInput("Enter name: ");
         String email = getStringInput("Enter email: ");
         String phoneNumber = getStringInput("Enter phone number: ");
@@ -283,22 +294,23 @@ public class ConsoleUI {
                 user = new Professor(null, name, email, phoneNumber, department);
             }
             default -> {
-                System.out.println("❌ Invalid user type. User not added.");
+                System.out.println(
+                        CostumColor.RED_BOLD_BRIGHT + "❌ Invalid user type. User not added." + CostumColor.RESET);
                 return;
             }
         }
 
         userService.addUser(user);
-        System.out.println("✅ User added successfully!");
+        System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ User added successfully!" + CostumColor.RESET);
     }
 
     private void updateUser() {
-        System.out.println("\n🔄 Update User");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "🔄 Update User" + CostumColor.RESET);
         String name = getStringInput("Enter the name of the user to update: ");
         User user = userService.getUserByName(name).orElse(null);
 
         if (user == null) {
-            System.out.println("❌ User not found.");
+            System.out.println(CostumColor.RED_BOLD_BRIGHT + "❌ User not found." + CostumColor.RESET);
             return;
         }
 
@@ -308,30 +320,35 @@ public class ConsoleUI {
         String newEmail = getStringInput("Enter new email (press Enter to keep current): ");
         String newPhoneNumber = getStringInput("Enter new phone number (press Enter to keep current): ");
 
-        if (!newEmail.isEmpty()) user.setEmail(newEmail);
-        if (!newPhoneNumber.isEmpty()) user.setPhoneNumber(newPhoneNumber);
+        if (!newEmail.isEmpty())
+            user.setEmail(newEmail);
+        if (!newPhoneNumber.isEmpty())
+            user.setPhoneNumber(newPhoneNumber);
 
         if (user instanceof Student) {
             String newStudentId = getStringInput("Enter new student ID (press Enter to keep current): ");
             String newDepartment = getStringInput("Enter new department (press Enter to keep current): ");
-            if (!newStudentId.isEmpty()) ((Student) user).setStudentId(newStudentId);
-            if (!newDepartment.isEmpty()) ((Student) user).setDepartment(newDepartment);
+            if (!newStudentId.isEmpty())
+                ((Student) user).setStudentId(newStudentId);
+            if (!newDepartment.isEmpty())
+                ((Student) user).setDepartment(newDepartment);
         } else if (user instanceof Professor) {
             String newDepartment = getStringInput("Enter new department (press Enter to keep current): ");
-            if (!newDepartment.isEmpty()) ((Professor) user).setDepartment(newDepartment);
+            if (!newDepartment.isEmpty())
+                ((Professor) user).setDepartment(newDepartment);
         }
 
         userService.updateUser(user);
-        System.out.println("✅ User updated successfully!");
+        System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ User updated successfully!" + CostumColor.RESET);
     }
 
     private void deleteUser() {
-        System.out.println("\n❌ Delete User");
+        System.out.println("\n" + CostumColor.RED_BOLD_BRIGHT + "❌ Delete User" + CostumColor.RESET);
         String name = getStringInput("Enter the name of the user to delete: ");
         User user = userService.getUserByName(name).orElse(null);
 
         if (user == null) {
-            System.out.println("❌ User not found.");
+            System.out.println(CostumColor.RED_BOLD_BRIGHT + "❌ User not found." + CostumColor.RESET);
             return;
         }
 
@@ -341,14 +358,14 @@ public class ConsoleUI {
 
         if (confirm.equalsIgnoreCase("YES")) {
             userService.deleteUser(name);
-            System.out.println("✅ User deleted successfully!");
+            System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ User deleted successfully!" + CostumColor.RESET);
         } else {
             System.out.println("Deletion cancelled.");
         }
     }
 
     private void listAllUsers() {
-        System.out.println("\n📋 All Users");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "📋 All Users" + CostumColor.RESET);
         List<User> users = userService.getAllUsers();
 
         if (users.isEmpty()) {
@@ -387,51 +404,55 @@ public class ConsoleUI {
                 case 2 -> returnDocument();
                 case 3 -> listAllLoans();
                 case 4 -> back = true;
-                default -> System.out.println("❌ Invalid choice. Please try again.");
+                default -> System.out.println(
+                        CostumColor.RED_BOLD_BRIGHT + "❌ Invalid choice. Please try again." + CostumColor.RESET);
             }
         }
     }
 
     private void printLoanMenu() {
-        System.out.println("\n📅 Loan Management");
-        System.out.println("1. 📚 Loan Document");
-        System.out.println("2. 🔙 Return Document");
-        System.out.println("3. 📋 List All Loans");
-        System.out.println("4. ⬅️ Back to Main Menu");
+        System.out.println("\n" + CostumColor.BROWN_BACKGROUND + CostumColor.WHITE_BOLD_BRIGHT + "📅 Loan Management"
+                + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "1. 📚 Loan Document" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "2. 🔙 Return Document" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "3. 📋 List All Loans" + CostumColor.RESET);
+        System.out.println(CostumColor.RED_BOLD_BRIGHT + "4. ⬅️ Back to Main Menu" + CostumColor.RESET);
     }
 
     private void loanDocument() {
-        System.out.println("\n📚 Loan Document");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "📚 Loan Document" + CostumColor.RESET);
         String documentTitle = getStringInput("Enter document title: ");
         String userName = getStringInput("Enter user name: ");
 
         try {
             loanService.loanDocument(documentTitle, userName);
-            System.out.println("✅ Document loaned successfully!");
+            System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ Document loaned successfully!" + CostumColor.RESET);
         } catch (IllegalArgumentException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(CostumColor.RED_BOLD_BRIGHT + "❌ " + e.getMessage() + CostumColor.RESET);
         } catch (RuntimeException e) {
-            System.out.println("❌ An error occurred: " + e.getMessage());
+            System.out.println(
+                    CostumColor.RED_BOLD_BRIGHT + "❌ An error occurred: " + e.getMessage() + CostumColor.RESET);
         }
     }
 
     private void returnDocument() {
-        System.out.println("\n🔙 Return Document");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "🔙 Return Document" + CostumColor.RESET);
         String documentTitle = getStringInput("Enter document title: ");
         String userName = getStringInput("Enter user name: ");
 
         try {
             loanService.returnDocument(documentTitle, userName);
-            System.out.println("✅ Document returned successfully!");
+            System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ Document returned successfully!" + CostumColor.RESET);
         } catch (IllegalArgumentException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(CostumColor.RED_BOLD_BRIGHT + "❌ " + e.getMessage() + CostumColor.RESET);
         } catch (RuntimeException e) {
-            System.out.println("❌ An error occurred: " + e.getMessage());
+            System.out.println(
+                    CostumColor.RED_BOLD_BRIGHT + "❌ An error occurred: " + e.getMessage() + CostumColor.RESET);
         }
     }
 
     private void listAllLoans() {
-        System.out.println("\n📋 All Loans");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "📋 All Loans" + CostumColor.RESET);
         List<Loan> loans = loanService.getAllLoans();
 
         if (loans.isEmpty()) {
@@ -448,7 +469,8 @@ public class ConsoleUI {
         System.out.println("Document: " + loan.getDocumentTitle());
         System.out.println("User: " + loan.getUserName());
         System.out.println("Loan Date: " + loan.getLoanDate());
-        System.out.println("Return Date: " + (loan.getReturnDate() != null ? loan.getReturnDate() : "Not returned yet"));
+        System.out
+                .println("Return Date: " + (loan.getReturnDate() != null ? loan.getReturnDate() : "Not returned yet"));
     }
 
     private void handleReservations() {
@@ -461,49 +483,54 @@ public class ConsoleUI {
                 case 2 -> cancelReservation();
                 case 3 -> listAllReservations();
                 case 4 -> back = true;
-                default -> System.out.println("❌ Invalid choice. Please try again.");
+                default -> System.out.println(
+                        CostumColor.RED_BOLD_BRIGHT + "❌ Invalid choice. Please try again." + CostumColor.RESET);
             }
         }
     }
 
     private void printReservationMenu() {
-        System.out.println("\n🔖 Reservation Management");
-        System.out.println("1. 📌 Reserve Document");
-        System.out.println("2. ❌ Cancel Reservation");
-        System.out.println("3. 📋 List All Reservations");
-        System.out.println("4. ⬅️ Back to Main Menu");
+        System.out.println("\n" + CostumColor.BROWN_BACKGROUND + CostumColor.WHITE_BOLD_BRIGHT
+                + "🔖 Reservation Management" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "1. 📌 Reserve Document" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "2. ❌ Cancel Reservation" + CostumColor.RESET);
+        System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "3. 📋 List All Reservations" + CostumColor.RESET);
+        System.out.println(CostumColor.RED_BOLD_BRIGHT + "4. ⬅️ Back to Main Menu" + CostumColor.RESET);
     }
 
     private void reserveDocument() {
-        System.out.println("\n📌 Reserve Document");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "📌 Reserve Document" + CostumColor.RESET);
         String documentTitle = getStringInput("Enter document title: ");
         String userName = getStringInput("Enter user name: ");
 
         try {
             reservationService.reserveDocument(documentTitle, userName);
-            System.out.println("✅ Document reserved successfully!");
+            System.out.println(CostumColor.GREEN_BOLD_BRIGHT + "✅ Document reserved successfully!" + CostumColor.RESET);
         } catch (IllegalArgumentException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(CostumColor.RED_BOLD_BRIGHT + "❌ " + e.getMessage() + CostumColor.RESET);
         } catch (RuntimeException e) {
-            System.out.println("❌ An error occurred: " + e.getMessage());
+            System.out.println(
+                    CostumColor.RED_BOLD_BRIGHT + "❌ An error occurred: " + e.getMessage() + CostumColor.RESET);
         }
     }
 
     private void cancelReservation() {
-        System.out.println("\n❌ Cancel Reservation");
+        System.out.println("\n" + CostumColor.RED_BOLD_BRIGHT + "❌ Cancel Reservation" + CostumColor.RESET);
         String documentTitle = getStringInput("Enter document title: ");
         String userName = getStringInput("Enter user name: ");
 
         try {
             reservationService.cancelReservation(documentTitle, userName);
-            System.out.println("✅ Reservation cancelled successfully!");
+            System.out.println(
+                    CostumColor.GREEN_BOLD_BRIGHT + "✅ Reservation cancelled successfully!" + CostumColor.RESET);
         } catch (RuntimeException e) {
-            System.out.println("❌ An error occurred: " + e.getMessage());
+            System.out.println(
+                    CostumColor.RED_BOLD_BRIGHT + "❌ An error occurred: " + e.getMessage() + CostumColor.RESET);
         }
     }
 
     private void listAllReservations() {
-        System.out.println("\n📋 All Reservations");
+        System.out.println("\n" + CostumColor.BLUE_BOLD_BRIGHT + "📋 All Reservations" + CostumColor.RESET);
         List<Reservation> reservations = reservationService.getAllReservations();
 
         if (reservations.isEmpty()) {
@@ -523,7 +550,7 @@ public class ConsoleUI {
     }
 
     private String getStringInput(String prompt) {
-           System.out.print(prompt);
+        System.out.print(prompt);
         return scanner.nextLine().trim();
     }
 
@@ -533,7 +560,8 @@ public class ConsoleUI {
                 System.out.print(prompt);
                 return Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
-                System.out.println("❌ Invalid input. Please enter a number.");
+                System.out.println(
+                        CostumColor.RED_BOLD_BRIGHT + "❌ Invalid input. Please enter a number." + CostumColor.RESET);
             }
         }
     }
