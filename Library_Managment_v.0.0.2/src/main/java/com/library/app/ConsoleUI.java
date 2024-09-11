@@ -1,8 +1,5 @@
 package com.library.app;
 
-import java.util.List;
-import java.util.Scanner;
-
 import com.library.model.Loan;
 import com.library.model.Reservation;
 import com.library.model.document.Book;
@@ -17,6 +14,8 @@ import com.library.service.DocumentService;
 import com.library.service.LoanService;
 import com.library.service.ReservationService;
 import com.library.service.UserService;
+import java.util.List;
+import java.util.Scanner;
 
 public class ConsoleUI {
     private final DocumentService documentService;
@@ -61,7 +60,6 @@ public class ConsoleUI {
         System.out.println(CostumColor.BLUE_BOLD_BRIGHT + "4. 🔖 Manage Reservations" + CostumColor.RESET);
         System.out.println(CostumColor.RED_BOLD_BRIGHT + "5. 🚪 Exit" + CostumColor.RESET);
     }
-
     private void handleDocuments() {
         boolean back = false;
         while (!back) {
@@ -230,8 +228,8 @@ public class ConsoleUI {
         System.out.println("Publication Year: " + doc.getPublicationYear());
         System.out.println("Type: " + doc.getType());
 
-        if (doc instanceof Book) {
-            System.out.println("ISBN: " + ((Book) doc).getIsbn());
+        if (doc instanceof Book book) {
+            System.out.println("ISBN: " + book.getIsbn());
         } else if (doc instanceof Magazine) {
             System.out.println("Issue Number: " + ((Magazine) doc).getIssueNumber());
         } else if (doc instanceof ScientificJournal) {
