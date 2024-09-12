@@ -134,23 +134,23 @@ public class UserDAO {
     }
 
     private void saveUserToLibraryUsers(Connection conn, User user) throws SQLException {
-        String sql = "INSERT INTO library_users (id, name, email, phone_number) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO library_users (id, name, email, phone_number, borrowing_limit) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             UUID userId = user.getId() != null ? user.getId() : UUID.randomUUID();
             stmt.setObject(1, userId);
             stmt.setString(2, user.getName());
             stmt.setString(3, user.getEmail());
             stmt.setString(4, user.getPhoneNumber());
+            stmt.setInt(5, user.getBorrowingLimit());
             stmt.executeUpdate();
         }
     }
-
     private void saveUserToSpecificTable(Connection conn, User user) throws SQLException {
         String sql;
         if (user instanceof Student) {
-            sql = "INSERT INTO student_users (id, name, email, phone_number, student_id, department) VALUES (?, ?, ?, ?, ?, ?)";
+            sql = "INSERT INTO student_users (id, name, email, phone_number, student_id, department, borrowing_limit) VALUES (?, ?, ?, ?, ?, ?, ?)";
         } else if (user instanceof Professor) {
-            sql = "INSERT INTO professor_users (id, name, email, phone_number, department) VALUES (?, ?, ?, ?, ?)";
+            sql = "INSERT INTO professor_users (id, name, email, phone_number, department, borrowing_limit) VALUES (?, ?, ?, ?, ?, ?)";
         } else {
             throw new IllegalArgumentException("Unknown user type");
         }
@@ -165,9 +165,11 @@ public class UserDAO {
                 Student student = (Student) user;
                 stmt.setString(5, student.getStudentId());
                 stmt.setString(6, student.getDepartment());
+                stmt.setInt(7, student.getBorrowingLimit());
             } else if (user instanceof Professor) {
                 Professor professor = (Professor) user;
                 stmt.setString(5, professor.getDepartment());
+                stmt.setInt(6, professor.getBorrowingLimit());
             }
             stmt.executeUpdate();
         }

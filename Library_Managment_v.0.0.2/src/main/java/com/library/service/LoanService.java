@@ -1,12 +1,13 @@
 package com.library.service;
-
-import com.library.dao.LoanDAO;
-import com.library.dao.UserDAO;
-import com.library.dao.DocumentDAO;
-import com.library.model.Loan;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import com.library.dao.DocumentDAO;
+import com.library.dao.LoanDAO;
+import com.library.dao.UserDAO;
+import com.library.model.Loan;
+import com.library.model.user.User;
 
 public class LoanService {
     private final LoanDAO loanDAO;
@@ -20,21 +21,34 @@ public class LoanService {
     }
 
     public void loanDocument(String documentTitle, String userName) {
-        if (!userDAO.userExists(userName)) {
-            throw new IllegalArgumentException("User does not exist: " + userName);
-        }
+        User user = userDAO.findByName(userName)
+                .orElseThrow(() -> new IllegalArgumentException("User does not exist: " + userName));
+    
         if (!documentDAO.documentExists(documentTitle)) {
             throw new IllegalArgumentException("Document does not exist: " + documentTitle);
         }
+    
         if (isDocumentLoaned(documentTitle)) {
             throw new IllegalArgumentException("Document is already loaned: " + documentTitle);
         }
+    
+        int currentLoans = getCurrentLoansCount(userName);
+        if (currentLoans >= user.getBorrowingLimit()) {
+            throw new IllegalArgumentException("User has reached their maximum borrowing limit of " + user.getBorrowingLimit() + " documents.");
+        }
+    
         Loan loan = new Loan(null, documentTitle, userName, LocalDate.now(), null);
         try {
             loanDAO.save(loan);
         } catch (Exception e) {
             throw new RuntimeException("Unable to process loan. Please try again later.");
         }
+    }
+
+    private int getCurrentLoansCount(String userName) {
+        return (int) loanDAO.findAll().stream()
+                .filter(loan -> loan.getUserName().equals(userName) && loan.getReturnDate() == null)
+                .count();
     }
 
     public void returnDocument(String documentTitle, String userName) {

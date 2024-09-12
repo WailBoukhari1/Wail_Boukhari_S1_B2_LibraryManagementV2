@@ -22,4 +22,9 @@ public class Professor extends User {
     public String getType() {
         return "Professor";
     }
+
+    @Override
+    public int getBorrowingLimit() {
+        return 5; // Professors can borrow up to 5 documents
+    }
 }

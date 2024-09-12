@@ -3,18 +3,22 @@ CREATE TABLE library_users (
     id UUID PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    phone_number VARCHAR(15) NOT NULL
+    phone_number VARCHAR(15) NOT NULL,
+    borrowing_limit INT NOT NULL
 );
+
 
 -- Create the student user table that inherits from the library_users table
 CREATE TABLE student_users (
     student_id VARCHAR(50) NOT NULL,
-    department VARCHAR(255)
+    department VARCHAR(255),
+    CHECK (borrowing_limit = 3)
 ) INHERITS (library_users);
 
 -- Create the professor user table that inherits from the library_users table
 CREATE TABLE professor_users (
-    department VARCHAR(255) NOT NULL
+    department VARCHAR(255) NOT NULL,
+    CHECK (borrowing_limit = 5)
 ) INHERITS (library_users);
 
 -- Create the parent table for library documents

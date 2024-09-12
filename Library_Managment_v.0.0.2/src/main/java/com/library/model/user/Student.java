@@ -32,4 +32,9 @@ public class Student extends User {
     public String getType() {
         return "Student";
     }
+
+    @Override
+    public int getBorrowingLimit() {
+        return 3; // Students can borrow up to 3 documents
+    }
 }

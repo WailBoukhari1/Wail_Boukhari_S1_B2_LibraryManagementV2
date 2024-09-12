@@ -1,5 +1,8 @@
 package com.library.app;
 
+import java.util.List;
+import java.util.Scanner;
+
 import com.library.model.Loan;
 import com.library.model.Reservation;
 import com.library.model.document.Book;
@@ -14,8 +17,6 @@ import com.library.service.DocumentService;
 import com.library.service.LoanService;
 import com.library.service.ReservationService;
 import com.library.service.UserService;
-import java.util.List;
-import java.util.Scanner;
 
 public class ConsoleUI {
     private final DocumentService documentService;
